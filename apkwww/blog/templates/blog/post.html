@@ -1,0 +1,15 @@
+<html lang="pl">
+<head>
+
+</head>
+<body>
+    <div>
+        <h1><a href="/">Blog technologiczny</a></h1>
+    </div>
+    <div>
+        published: {{ post.published_date }} </br>
+        <h1><a href="{{ post.id }}">{{ post.title }}</a> </h1>
+        {{ post.text|linebreaks }}
+    </div>
+</body>
+</html>

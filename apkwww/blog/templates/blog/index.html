@@ -1,0 +1,17 @@
+<html lang="pl">
+<head>
+
+</head>
+<body>
+    <div>
+        <h1><a href="/">Blog technologiczny</a></h1>
+    </div>
+    {% for post in posts %}
+        <div style="background-color: aquamarine; border: solid 1px blue">
+            published: {{ post.published_date }} </br>
+            <h1><a href="post/{{ post.id }}">{{ post.title }}</a> </h1>
+            {{ post.text|linebreaks }}
+        </div>
+    {% endfor %}
+</body>
+</html>
