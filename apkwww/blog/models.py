@@ -2,10 +2,11 @@ from django.db import models
 from django.utils import timezone
 from django.contrib import auth
 
+
 class Post(models.Model):
     title = models.CharField(max_length = 200)
     text = models.TextField()
-    author = models.ForeignKey('auth.User', null = True, on_delete = models.CASCADE)
+    author = models.ForeignKey('auth.User', on_delete = models.CASCADE)
     created_date = models.DateTimeField(default = timezone.now)
     published_date = models.DateTimeField(blank = True, null = True)
 
@@ -16,9 +17,11 @@ class Post(models.Model):
         self.published_date = timezone.now()
         self.save()
 
+
 class Comment(models.Model):
     text = models.TextField()
-    author = models.ForeignKey('auth.User', null = True, blank = True, on_delete = models.CASCADE)
+    author = models.ForeignKey('auth.User', null = True, blank = True, on_delete = models.SET_NULL)
+    nickname = models.CharField(max_length=35, null = True)
     created_date = models.DateTimeField(default = timezone.now)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
 
@@ -31,3 +34,11 @@ class Comment(models.Model):
         return self.text
         
     text_cut.short_description = "Comment"
+
+
+class Categories(models.Model):
+    category = models.CharField(max_length = 40, null = False)
+    description = models.TextField(max_length = 100, null = True)
+
+    def __str__(self):
+        return self.category
