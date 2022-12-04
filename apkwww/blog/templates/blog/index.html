@@ -3,13 +3,14 @@
 
 </head>
 <body>
-    <div>
+    <header>
         <h1><a href="/">Blog technologiczny</a></h1>
-    </div>
+
+    </header>
     {% for post in posts %}
-        <div style="background-color: aquamarine; border: solid 1px blue">
-            published: {{ post.published_date }} </br>
+        <div style="background-color: cornsilk; border: solid 1px #c7c2ac; padding-left: 25px; padding-right: 25px; margin: 10px 10px 10px 10px; word-wrap: break-word;">
             <h1><a href="post/{{ post.id }}">{{ post.title }}</a> </h1>
+            published: {{ post.published_date }} <br>
             {{ post.text|linebreaks }}
         </div>
     {% endfor %}

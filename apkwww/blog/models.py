@@ -21,7 +21,7 @@ class Post(models.Model):
 class Comment(models.Model):
     text = models.TextField()
     author = models.ForeignKey('auth.User', null = True, blank = True, on_delete = models.SET_NULL)
-    nickname = models.CharField(max_length=35, null = True)
+    nickname = models.CharField(max_length=35, blank = True, null = True)
     created_date = models.DateTimeField(default = timezone.now)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
 

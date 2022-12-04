@@ -6,10 +6,44 @@
     <div>
         <h1><a href="/">Blog technologiczny</a></h1>
     </div>
-    <div>
+    <div  style="background-color: cornsilk; border: solid 1px #c7c2ac; padding-left: 25px; padding-right: 25px; margin: 10px 10px 10px 10px; word-wrap: break-word;">
         published: {{ post.published_date }} </br>
         <h1><a href="{{ post.id }}">{{ post.title }}</a> </h1>
         {{ post.text|linebreaks }}
+    </div>
+    <div>
+        Comment section ({{ num_of_comm }}):<br>
+        <form method="post">
+            {% csrf_token %}
+            {% for input in form %}
+                {% if user.is_anonymous %}
+                    {{ input }} <br>
+                {% elif user.is_authenticated and input.label == 'Nickname' %}
+                    {{ input.as_hidden.not }} <br>
+                {% else %}
+                    {{ input }} <br>
+                {% endif %}
+            {% endfor %}
+            <input type="submit">
+        </form>
+        {% for comment in comments %}
+            {% if comment.author is None and comment.nickname is None %}
+                <div style="background-color: #dedede; border: solid 1px #969696; padding-left: 25px; padding-right: 25px; margin: 10px 10px 10px 10px; word-wrap: break-word;">
+                    Usunięty użytkownik published: {{ comment.created_date }} <br>
+                    {{ comment.text|linebreaks }}
+                </div>
+            {% elif comment.author is None %}
+               <div style="background-color: #dedede; border: solid 1px #969696; padding-left: 25px; padding-right: 25px; margin: 10px 10px 10px 10px; word-wrap: break-word;">
+                {{ comment.nickname }} published: {{ comment.created_date }} <br>
+                {{ comment.text|linebreaks }}
+                </div>
+            {% elif comment.author is not None %}
+                <div style="background-color: #dedede; border: solid 1px #969696; padding-left: 25px; padding-right: 25px; margin: 10px 10px 10px 10px; word-wrap: break-word;">
+                    {{ comment.author }} published: {{ comment.created_date }} <br>
+                    {{ comment.text|linebreaks }}
+                </div>
+            {% endif %}
+        {% endfor %}
     </div>
 </body>
 </html>
