@@ -1,6 +1,8 @@
-<html lang="pl">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-
+    <meta charset="UTF-8">
+    <title>Title</title>
 </head>
 <body>
     <header>
@@ -13,11 +15,19 @@
             <p style="text-align: right"><a href="/api-authlogin">Login</a></p>
         {% endif %}
     </header>
+    Witaj na swoim profilu! Poniżej zobaczysz swoją aktywność!<br>
+    Twoje posty:
     {% for post in posts %}
         <div style="background-color: cornsilk; border: solid 1px #c7c2ac; padding-left: 25px; padding-right: 25px; margin: 10px 10px 10px 10px; word-wrap: break-word;">
             <h1><a href="post/{{ post.id }}">{{ post.title }}</a> </h1>
             published: {{ post.published_date }} <br>
-            {{ post.text|linebreaks }}
+        </div>
+    {% endfor %}
+    Twoje komentarze:
+    {% for comment in comments %}
+        <div style="background-color: #dedede; border: solid 1px #969696; padding-left: 25px; padding-right: 25px; margin: 10px 10px 10px 10px; word-wrap: break-word;">
+            <a href="post/{{ comment.post.id }}">{{ comment.post }}</a> published: {{ comment.created_date }} <br>
+            {{ comment.text|linebreaks }}
         </div>
     {% endfor %}
 </body>
