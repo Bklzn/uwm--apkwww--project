@@ -11,7 +11,7 @@ def index(request):
                                                'user': request.user})
 
 
-def post(request, pk):
+def post_view(request, pk):
     post = Post.objects.get(id=pk)
     comments = Comment.objects.filter(post_id=pk).order_by('-created_date')
     num_of_comm = comments.count()
@@ -39,7 +39,7 @@ def post(request, pk):
                                               'user': request.user})
 
 
-def new_post(request):
+def post_create(request):
     if request.user.is_authenticated:
         form = PostForm(request.POST)
         if form.is_valid():
@@ -52,7 +52,7 @@ def new_post(request):
         return HttpResponse("Nie masz uprawnień, <a href='/api-authlogin'>zaloguj się</a>")
 
 
-def profile(request):
+def profile_view(request):
     if request.user.is_authenticated:
         posts = Post.objects.filter(author=request.user).order_by('-published_date')
         posts_num = posts.count()
