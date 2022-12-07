@@ -15,16 +15,15 @@
             <p style="text-align: right"><a href="/api-authlogin">Login</a></p>
         {% endif %}
     </header>
-    Witaj na swoim profilu! Poniżej zobaczysz swoją aktywność!<br>
-    Twoje posty ({{ posts_num }}):
+    Poniżej zobaczysz aktywność użytkownika {{ user_account }}!<br>
+    Posty ({{ posts_num }}):
     {% for post in posts %}
         <div style="background-color: cornsilk; border: solid 1px #c7c2ac; padding-left: 25px; padding-right: 25px; margin: 10px 10px 10px 10px; word-wrap: break-word;">
             <h1><a href="/post/{{ post.id }}">{{ post.title }}</a> </h1>
             published: {{ post.published_date }} <br>
-            <p style="text-align: right"><a href="/post/delete={{ post.id }}">Delete</a> <a href="/post/edit={{ post.id }}">Edit</a></p>
         </div>
     {% endfor %}
-    Twoje komentarze ({{ comments_num }}):
+    Komentarze ({{ comments_num }}):
     {% for comment in comments %}
         <div style="background-color: #dedede; border: solid 1px #969696; padding-left: 25px; padding-right: 25px; margin: 10px 10px 10px 10px; word-wrap: break-word;">
             <a href="/post/{{ comment.post.id }}">{{ comment.post }}</a> published: {{ comment.created_date }} <br>
