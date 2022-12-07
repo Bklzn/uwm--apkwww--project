@@ -7,7 +7,7 @@ class PostSerializer(serializers.Serializer):
     text = serializers.CharField()
     author = serializers.PrimaryKeyRelatedField(queryset = User.objects.all())
     created_date = serializers.DateTimeField()
-    published_date = serializers.DateTimeField(allow_null = True)
+    published_date = serializers.DateTimeField(allow_null = False)
 
     def create(self, data):
         return Post.objects.create(**data)

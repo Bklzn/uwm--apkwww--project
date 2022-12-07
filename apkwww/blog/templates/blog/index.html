@@ -1,0 +1,24 @@
+<html lang="pl">
+<head>
+
+</head>
+<body style = "background-color: gray;">
+    <header>
+        <h1><a href="/">Blog technologiczny</a></h1>
+        {% if user.is_authenticated %}
+            <p style="text-align: right">Hi <a href="/profile">{{ user }}</a>! <br>
+                <a href="/api-authlogout">Logout</a><br>
+            <a href="/new_post">Dodaj nowy post</a></p>
+        {% else %}
+            <p style="text-align: right"><a href="/api-authlogin">Login</a></p>
+        {% endif %}
+    </header>
+    {% for post in posts %}
+        <div style="background-color: cornsilk; border: solid 1px #c7c2ac; padding-left: 25px; padding-right: 25px; margin: 10px 10px 10px 10px; word-wrap: break-word;">
+            <h1><a href="post/{{ post.id }}">{{ post.title }}</a> </h1>
+            published: {{ post.published_date }} <br>
+            {{ post.text|linebreaks }}
+        </div>
+    {% endfor %}
+</body>
+</html>

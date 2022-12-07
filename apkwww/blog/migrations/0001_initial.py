@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('text', models.TextField()),
-                ('nickname', models.CharField(max_length=35, null=True)),
+                ('nickname', models.CharField(blank=True, max_length=35, null=True)),
                 ('created_date', models.DateTimeField(default=django.utils.timezone.now)),
                 ('author', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
                 ('post', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='blog.post')),
