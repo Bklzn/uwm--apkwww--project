@@ -2,104 +2,116 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils import timezone
 from .models import Post, Comment
+from django.db.models import Q
 from .serializers import PostSerializer, CommentSerializer
-from .forms import CommentForm, PostForm, EditPostForm
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import status
 
-@api_view(['GET'])
+@api_view(['GET','PUT'])
 def index(request):
     if request.method == 'GET':
         posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date')
         serializer = PostSerializer(posts, many = True)
         return Response(serializer.data)
+    elif request.method == 'PUT':
+        post = Post(**request.data)
+        serializer = PostSerializer(post, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
+def posts_all(request):
+    if request.method == 'GET':
+        post = Post.objects.all()
+        serializerPost = PostSerializer(post, many = True)
+        return Response(serializerPost.data)
+@api_view(['GET','PUT', 'DELETE'])
 def post_view(request, pk):
-    post = Post.objects.get(id=pk)
-    comments = Comment.objects.filter(post_id=pk).order_by('-created_date')
+    try:
+        post = Post.objects.get(id=pk)
+    except post.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        comments = Comment.objects.filter(post_id=pk).order_by('-created_date')
+        for com in comments:
+            com.text = com.text_cut()
+        serializerPost = PostSerializer(post)
+        serializerComments = CommentSerializer(comments, many = True)
+        return Response([serializerPost.data, serializerComments.data])
+    elif request.method == 'PUT':
+        serializer = PostSerializer(post, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'DELETE':
+        post.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET'])
+def post_search(request, contains):
+    post = Post.objects.filter(
+        Q(text__icontains = contains) |
+        Q(title__icontains = contains) &
+        Q(published_date__isnull = False)).order_by('-published_date')
+    if post.count() == 0:
+        return Response({"Error": "No matching posts"}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializerPost = PostSerializer(post, many = True)
+        return Response([serializerPost.data])
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def my_profile_view(request):
+    try:
+        posts = Post.objects.filter(author = request.user)
+    except len(posts) == 0:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'GET':
+        posts = Post.objects.filter(author = request.user).order_by('-created_date')
+        comments = Comment.objects.filter(author=request.user).order_by("-created_date")
+        for com in comments:
+            com.text = com.text_cut()
+        serializerPost = PostSerializer(posts, many = True)
+        serializerComments = CommentSerializer(comments, many = True)
+        return Response([serializerPost.data, serializerComments.data])
+
+@api_view(['GET'])
+def profile_view_by_id(request, pk):
+    user = User.objects.get(id = pk)
+    posts = Post.objects.filter(author = user).order_by('-published_date')
+    posts_num = posts.count()
+    comments = Comment.objects.filter(author = user).order_by("-created_date")
+    comments_num = comments.count()
     for com in comments:
         com.text = com.text_cut()
-    serializerPost = PostSerializer(post)
+    serializerPost = PostSerializer(posts, many = True)
     serializerComments = CommentSerializer(comments, many = True)
-    return Response([serializerPost.data, serializerComments.data])
+    print(serializerComments.data)
+    return Response([{"profile": user.__str__(), "number of posts": posts_num,"number of comments": comments_num},serializerPost.data, serializerComments.data])
 
-
-def comment_delete(request, pk):
-    comment = Comment.objects.get(id=pk)
-    post = Post.objects.get(comment=comment)
-    if request.user.is_authenticated and post.author == request.user:
-        comment.delete()
-    return HttpResponseRedirect(f'/post/{post.id}')
-
-
-def post_create(request):
-    if request.user.is_authenticated:
-        form = PostForm(request.POST)
-        if form.is_valid():
-            post = form.cleaned_data
-            new_post = Post(text=post['text'], title=post['title'], published_date=post['published_date'], author=request.user)
-            new_post.save()
-            return HttpResponseRedirect(f'/post/{new_post.id}')
-        return render(request, 'blog/new_post.html', {'form': form})
-    else:
-        return HttpResponse("Nie masz uprawnień, <a href='/api-authlogin'>zaloguj się</a>")
-
-
-def post_delete(request, pk):
-    if request.user.is_authenticated:
-        post = Post.objects.get(author=request.user, id=pk)
-        post.delete()
-        return HttpResponseRedirect('/')
-    else:
-        return HttpResponse("Nie masz uprawnień, <a href='/api-authlogin'>zaloguj się</a>")
-
-
-def post_edit(request, pk):
-    if request.user.is_authenticated:
-        post = Post.objects.get(author=request.user, id=pk)
-        if request.method == 'POST':
-            form = EditPostForm(request.POST)
-            if form.is_valid():
-                text = form.cleaned_data
-                if post.text != text['text']:
-                    post.text = text['text']
-                    if '[Edited]' not in post.title:
-                        post.title += '[Edited]'
-                    post.save()
-                return HttpResponseRedirect(f'/post/{post.id}')
-            return render(request, 'blog/edit_post.html', {'form': form, 'post': post})
-        else:
-            form = EditPostForm(initial={'text': post.text})
-            return render(request, 'blog/edit_post.html', {'form': form, 'post': post})
-    else:
-        return HttpResponse("Nie masz uprawnień, <a href='/api-authlogin'>zaloguj się</a>")
-
-
-def my_profile_view(request):
-    if request.user.is_authenticated:
-        posts = Post.objects.filter(author=request.user).order_by('-published_date')
+@api_view(['GET'])
+def profile_view_by_string(request, name):
+    try:
+        user = User.objects.get(username = name)
+    except:
+        return Response({"Error": "User with that name does not exist"},status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'GET':
+        posts = Post.objects.filter(author = user).order_by('-published_date')
         posts_num = posts.count()
-        comments = Comment.objects.filter(author=request.user).order_by("-created_date")
+        comments = Comment.objects.filter(author = user).order_by("-created_date")
         comments_num = comments.count()
-        return render(request, 'blog/profile.html', {'posts': posts,
-                                                     'comments': comments,
-                                                     'posts_num': posts_num,
-                                                     'comments_num': comments_num,
-                                                     })
-    else:
-        return HttpResponse("Nie masz uprawnień, <a href='/api-authlogin'>zaloguj się</a>")
-
-
-def profile_view(request, pk):
-    user_account = User.objects.get(id=pk)
-    posts = Post.objects.filter(author_id=pk).order_by('-published_date')
-    posts_num = posts.count()
-    comments = Comment.objects.filter(author_id=pk).order_by("-created_date")
-    comments_num = comments.count()
-    return render(request, 'blog/profile_view.html', {'posts': posts,
-                                                      'comments': comments,
-                                                      'posts_num': posts_num,
-                                                      'comments_num': comments_num,
-                                                      'user_account': user_account})
+        for com in comments:
+            com.text = com.text_cut()
+        serializerPost = PostSerializer(posts, many = True)
+        serializerComments = CommentSerializer(comments, many = True)
+        print(serializerComments.data)
+        return Response([{"profile": user.__str__(), "number of posts": posts_num,"number of comments": comments_num},serializerPost.data, serializerComments.data])
