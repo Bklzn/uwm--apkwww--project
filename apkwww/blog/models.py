@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib import auth
 
+
 class Categories(models.Model):
     category = models.CharField(max_length = 40, null = False)
     description = models.TextField(max_length = 100, null = True)
@@ -9,13 +10,14 @@ class Categories(models.Model):
     def __str__(self):
         return self.category
 
+
 class Post(models.Model):
     title = models.CharField(max_length = 200)
     text = models.TextField()
     author = models.ForeignKey('auth.User', on_delete = models.CASCADE)
     category = models.ForeignKey(Categories, blank = True, null = True, on_delete = models.SET_NULL)
     created_date = models.DateTimeField(default = timezone.now)
-    published_date = models.DateTimeField(blank = True, null = True)
+    published_date = models.DateTimeField(blank = True, null = True, default=timezone.now)
 
     def __str__(self):
         return self.title
