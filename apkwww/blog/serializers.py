@@ -16,6 +16,7 @@ class PostSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     title = serializers.CharField(max_length = 200)
     text = serializers.CharField()
+    category = serializers.PrimaryKeyRelatedField(queryset = Categories.objects.all(), allow_null = True)
     author = serializers.PrimaryKeyRelatedField(queryset = User.objects.all())
     created_date = serializers.DateTimeField(read_only=True)
     published_date = serializers.DateTimeField(validators=[validate_published_date])
