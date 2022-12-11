@@ -30,6 +30,7 @@ class PostSerializer(serializers.Serializer):
         instance.author = data.get('author', instance.author)
         instance.created_date = data.get('created_date', instance.created_date)
         instance.published_date = data.get('published_date', instance.published_date)
+        instance.category = data.get('category', instance.category)
         instance.save()
         return instance
 
