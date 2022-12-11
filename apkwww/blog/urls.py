@@ -4,8 +4,9 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),            # wyświetla wszystkie publiczne posty [GET: all]
-    path('post/<int:pk>', views.post_view),         # wyświetla post o danym id [GET: all, PUT: author or admin, DELETE: author or admin]
+    path('post/<int:pk>', views.post_view),         # wyświetla post o danym id wraz z komentarzami [GET: all, PUT(comment): all, DELETE: author]
     path('post/<str:contains>', views.post_search), # wyświetla posty zawierające daną frazę [GET: all]
+    path('post/<int:pk>/edit', views.post_edit),    # edycja posta o danym id [GET: author, PUT: author]
     path('profile', views.my_profile_view),                   # wyświetla profil zalogowanego użytkownika [GET: for users]
     path('profile/<int:pk>', views.profile_view_by_id),       # wyświetla profil użytkownika o danym id z jego publicznymi postami i komentarzami [GET: all (for owner get all posts)]
     path('profile/<str:name>', views.profile_view_by_string), # wyświetla profil użytkownika wyszukany po jego nazwie [GET: all]

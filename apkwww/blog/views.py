@@ -28,19 +28,23 @@ def index(request):
 @api_view(['GET','PUT', 'DELETE'])
 def post_view(request, pk):
     try:
-        post = Post.objects.get(id=pk)
-    except post.DoesNotExist:
+        post = Post.objects.get(pk=pk)
+    except Post.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
         comments = Comment.objects.filter(post_id=pk).order_by('-created_date')
         for com in comments:
+            print(com.post)
             com.text = com.text_cut()
         serializerPost = PostSerializer(post)
         serializerComments = CommentSerializer(comments, many = True)
         return Response([serializerPost.data, serializerComments.data], status=status.HTTP_200_OK)
     elif request.method == 'PUT':
-        serializer = PostSerializer(post, data=request.data, partial=True)
+        request.data["post"] = post
+        comment = Comment(**request.data)
+        request.data["post"] = post.pk
+        serializer = CommentSerializer(comment, data=request.data, partial = True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -49,6 +53,24 @@ def post_view(request, pk):
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+@api_view(['GET', 'PUT'])
+def post_edit(request, pk):
+    try:
+        post = Post.objects.get(id=pk)
+    except Post.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializerPost = PostSerializer(post)
+        return Response(serializerPost.data, status=status.HTTP_200_OK)
+    elif request.method == 'PUT':
+        if post.published_date is not None:
+            post.title += ' [Edited]'
+        serializer = PostSerializer(post, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 @api_view(['GET'])
 def post_search(request, contains):
     post = Post.objects.filter(
@@ -115,7 +137,7 @@ def profile_view_by_string(request, name):
 def comments_view_by_id(request, pk):
     try:
         comment = Comment.objects.get(pk = pk)
-    except comment.DoesNotExist:
+    except Comment.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     if request.method == 'GET':
         serializerComment = CommentSerializer(comment)
@@ -128,7 +150,7 @@ def comments_view_by_id(request, pk):
 def comment_of_the_post(request, postID, comID):
     try:
         post = Post.objects.get(pk = postID)
-    except post.DoesNotExist:
+    except Post.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     if request.method == "GET":
         comments = Comment.objects.filter(post = post).order_by("-created_date")
@@ -142,7 +164,7 @@ def comment_of_the_post(request, postID, comID):
 def comments_of_the_post_by_str(request, postID, contains):
     try:
         post = Post.objects.get(pk = postID)
-    except post.DoesNotExist:
+    except Post.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     if request.method == "GET":
         comments = Comment.objects.filter(
@@ -165,7 +187,7 @@ def category_view(request):
 def category_byId(request, id):
     try:
         category = Categories.objects.get(pk = id)
-    except category.DoesNotExist:
+    except Categories.DoesNotExist:
         return Response({"Error": "No matching category"}, status=status.HTTP_404_NOT_FOUND)
     posts = Post.objects.filter(category = category)
     serializerPost = PostSerializer(posts, many = True)
