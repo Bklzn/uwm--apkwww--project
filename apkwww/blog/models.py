@@ -15,7 +15,7 @@ class Post(models.Model):
     author = models.ForeignKey('auth.User', on_delete = models.CASCADE)
     category = models.ForeignKey(Categories, blank = True, null = True, on_delete = models.SET_NULL)
     created_date = models.DateTimeField(default = timezone.now)
-    published_date = models.DateTimeField(blank = True, null = True)
+    published_date = models.DateTimeField(blank = True, null = True, default=timezone.now)
 
     def __str__(self):
         return self.title
