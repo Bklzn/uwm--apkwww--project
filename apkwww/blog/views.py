@@ -109,7 +109,7 @@ def post_search(request, contains):
 
 
 @api_view(['GET'])
-@authentication_classes([BasicAuthentication, SessionAuthentication])
+@authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def my_profile_view(request):
     try:
